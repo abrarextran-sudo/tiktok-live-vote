@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-white">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TikTok Live Battle: Imran Khan vs Nawaz Sharif</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@600;700&family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Teko', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        pti: {
+                            DEFAULT: '#008751',
+                            red: '#E31B23',
+                            glow: '#22c55e'
+                        },
+                        pmln: {
+                            DEFAULT: '#005826',
+                            gold: '#FFD700',
+                            glow: '#3b82f6'
+                        }
+                    },
+                    animation: {
+                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0.0, 0.6, 1) infinite',
+                        'bounce-short': 'bounce 0.5s ease-in-out 1',
+                        'float': 'floatUp 1.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        floatUp: {
+                            '0%': { transform: 'translateY(0) scale(0.8)', opacity: '1' },
+                            '100%': { transform: 'translateY(-180px) scale(1.4)', opacity: '0' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Mobile Fullscreen Adjustments */
+        body {
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+        }
+        
+        .glow-pti {
+            box-shadow: 0 0 25px rgba(34, 197, 94, 0.5), inset 0 0 15px rgba(34, 197, 94, 0.3);
+        }
+        .glow-pmln {
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.5), inset 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+        .glow-vs {
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
+        }
+
+        /* Glassmorphism effects */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        /* Floating tap animations container */
+        .heart-container {
+            position: absolute;
+            pointer-events: none;
+            inset: 0;
+            overflow: hidden;
+            z-index: 40;
+        }
+
+        /* Animated diagonal divider background */
+        .pti-bg-gradient {
+            background: linear-gradient(135deg, #052e16 0%, #14532d 50%, #022c22 100%);
+        }
+        .pmln-bg-gradient {
+            background: linear-gradient(135deg, #091e3a 0%, #1e3a8a 50%, #172554 100%);
+        }
+    </style>
+</head>
+<body class="h-full w-full select-none overflow-hidden font-sans bg-slate-950 flex flex-col justify-between relative">
+
+    <!-- TOP HEADER / CONTROL BAR -->
+    <header class="absolute top-0 left-0 right-0 z-50 p-3 flex justify-between items-center bg-slate-950/80 backdrop-blur-md border-b border-white/10">
+        <!-- Live Stream Status Badge -->
+        <div class="flex items-center gap-2">
+            <span class="flex h-3 w-3 relative">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+            </span>
+            <span class="font-bold tracking-wider text-xs uppercase text-red-500 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30">TikTok LIVE</span>
+        </div>
+
+        <!-- Title Header -->
+        <h1 class="text-xs sm:text-sm font-bold text-slate-300 tracking-wider uppercase text-center">
+            WHO HAS MORE SUPPORT?
+        </h1>
+
+        <!-- Action Control Buttons -->
+        <div class="flex items-center gap-2">
+            <button id="autoSimBtn" onclick="toggleAutoSim()" class="bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs px-2.5 py-1 rounded-full font-semibold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-bolt text-amber-400 animate-pulse"></i>
+                <span id="autoSimLabel">Auto Vote: OFF</span>
+            </button>
+            <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800/80 border border-white/10">
+                <i class="fa-solid fa-gear text-sm"></i>
+            </button>
+            <button onclick="toggleFullScreen()" class="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800/80 border border-white/10">
+                <i class="fa-solid fa-expand text-sm"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN BATTLE CONTAINER (VERTICAL SPLIT FOR MOBILE) -->
+    <main class="w-full h-full pt-12 flex flex-col relative overflow-hidden">
+
+        <!-- TOP BAR: LIVE VOTING PROGRESS RATIO -->
+        <section class="w-full bg-slate-900/90 border-b border-white/10 p-2 z-30 relative shadow-2xl">
+            <div class="max-w-md mx-auto">
+                <div class="flex justify-between items-center text-xs font-bold mb-1 px-1">
+                    <span class="text-emerald-400 flex items-center gap-1">
+                        <i class="fa-solid fa-flag"></i> IMRAN KHAN: <span id="ikPercent">50%</span>
+                    </span>
+                    <span class="text-amber-300 text-[10px] tracking-widest uppercase">TOTAL VOTES: <span id="totalVotes">0</span></span>
+                    <span class="text-blue-400 flex items-center gap-1">
+                        NAWAZ SHARIF: <span id="nsPercent">50%</span> <i class="fa-solid fa-crown"></i>
+                    </span>
+                </div>
+                <!-- Dual-Color Progress Bar -->
+                <div class="w-full h-3.5 bg-slate-800 rounded-full overflow-hidden p-0.5 flex border border-white/10 shadow-inner">
+                    <div id="ikBar" class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-l-full transition-all duration-300 relative" style="width: 50%;"></div>
+                    <div id="nsBar" class="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-r-full transition-all duration-300 relative" style="width: 50%;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TWO PERSONALITIES CONTAINER (SPLIT SCREEN) -->
+        <div class="flex-1 flex flex-col justify-between relative h-full w-full">
+
+            <!-- TOP HALF: IMRAN KHAN (PTI) -->
+            <section id="ikSection" onclick="registerVote('IK', event)" class="flex-1 pti-bg-gradient relative flex flex-col items-center justify-center p-4 border-b-2 border-red-500/40 cursor-pointer overflow-hidden group">
+                <div class="heart-container" id="ikHearts"></div>
+                
+                <!-- Party Badge & Visual Effects -->
+                <div class="absolute top-3 left-3 bg-red-600/80 backdrop-blur-md px-3 py-1 rounded-full border border-red-400/50 flex items-center gap-1.5 shadow-lg">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span class="text-xs font-extrabold tracking-wider text-white">PTI</span>
+                </div>
+
+                <!-- Profile Photo / Avatar -->
+                <div class="relative mt-2 mb-1">
+                    <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden border-4 border-emerald-400 glow-pti relative z-10 bg-slate-900 flex items-center justify-center shadow-2xl">
+                        <!-- Custom high resolution avatar illustration / fallback image -->
+                        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80" 
+                             alt="Imran Khan" 
+                             class="w-full h-full object-cover filter contrast-110 brightness-105"
+                             onerror="this.onerror=null; this.src='https://placehold.co/400x400/008751/ffffff?text=IK+PTI';">
+                    </div>
+                    <div class="absolute -bottom-2 -right-2 z-20 bg-emerald-500 text-slate-950 p-2 rounded-full shadow-lg border border-white/40">
+                        <i class="fa-solid fa-thumbs-up text-lg"></i>
+                    </div>
+                </div>
+
+                <!-- Name & Vote Stats -->
+                <div class="text-center z-10 mt-1">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white drop-shadow-md">
+                        IMRAN KHAN
+                    </h2>
+                    <p class="text-xs text-emerald-300 font-semibold tracking-wider uppercase mb-1">Chairman Pakistan Tehreek-e-Insaf</p>
+
+                    <!-- Vote Counter Display -->
+                    <div class="inline-flex items-center justify-center bg-slate-950/80 border border-emerald-500/50 px-6 py-1.5 rounded-2xl glow-pti shadow-xl">
+                        <span id="ikVoteCount" class="font-display text-4xl sm:text-5xl font-bold text-emerald-400 leading-none tracking-wide">
+                            0
+                        </span>
+                        <span class="text-xs text-emerald-200/80 ml-2 font-bold uppercase tracking-wider">Votes</span>
+                    </div>
+                </div>
+
+                <!-- Touch / Vote Prompt -->
+                <div class="mt-3 bg-emerald-500/20 group-hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 px-5 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all transform group-active:scale-95 shadow-lg flex items-center gap-2">
+                    <i class="fa-solid fa-heart text-red-500 text-sm animate-bounce"></i>
+                    TAP SCREEN TO SUPPORT IK
+                </div>
+            </section>
+
+            <!-- VS BADGE CENTER OVERLAY -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none">
+                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-950 border-4 border-red-500 flex items-center justify-center glow-vs animate-pulse">
+                    <span class="font-display text-2xl sm:text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-red-500 to-amber-300">
+                        VS
+                    </span>
+                </div>
+            </div>
+
+            <!-- BOTTOM HALF: NAWAZ SHARIF (PML-N) -->
+            <section id="nsSection" onclick="registerVote('NS', event)" class="flex-1 pmln-bg-gradient relative flex flex-col items-center justify-center p-4 border-t-2 border-blue-500/40 cursor-pointer overflow-hidden group">
+                <div class="heart-container" id="nsHearts"></div>
+
+                <!-- Party Badge -->
+                <div class="absolute top-3 left-3 bg-blue-600/80 backdrop-blur-md px-3 py-1 rounded-full border border-blue-400/50 flex items-center gap-1.5 shadow-lg">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                    <span class="text-xs font-extrabold tracking-wider text-white">PML-N</span>
+                </div>
+
+                <!-- Profile Photo / Avatar -->
+                <div class="relative mt-2 mb-1">
+                    <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden border-4 border-blue-400 glow-pmln relative z-10 bg-slate-900 flex items-center justify-center shadow-2xl">
+                        <!-- Custom high resolution avatar illustration / fallback image -->
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" 
+                             alt="Nawaz Sharif" 
+                             class="w-full h-full object-cover filter contrast-110 brightness-105"
+                             onerror="this.onerror=null; this.src='https://placehold.co/400x400/005826/ffffff?text=NS+PMLN';">
+                    </div>
+                    <div class="absolute -bottom-2 -right-2 z-20 bg-blue-500 text-slate-950 p-2 rounded-full shadow-lg border border-white/40">
+                        <i class="fa-solid fa-crown text-lg"></i>
+                    </div>
+                </div>
+
+                <!-- Name & Vote Stats -->
+                <div class="text-center z-10 mt-1">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white drop-shadow-md">
+                        NAWAZ SHARIF
+                    </h2>
+                    <p class="text-xs text-blue-300 font-semibold tracking-wider uppercase mb-1">Leader Pakistan Muslim League (N)</p>
+
+                    <!-- Vote Counter Display -->
+                    <div class="inline-flex items-center justify-center bg-slate-950/80 border border-blue-500/50 px-6 py-1.5 rounded-2xl glow-pmln shadow-xl">
+                        <span id="nsVoteCount" class="font-display text-4xl sm:text-5xl font-bold text-blue-400 leading-none tracking-wide">
+                            0
+                        </span>
+                        <span class="text-xs text-blue-200/80 ml-2 font-bold uppercase tracking-wider">Votes</span>
+                    </div>
+                </div>
+
+                <!-- Touch / Vote Prompt -->
+                <div class="mt-3 bg-blue-500/20 group-hover:bg-blue-500/30 border border-blue-400/40 text-blue-200 px-5 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all transform group-active:scale-95 shadow-lg flex items-center gap-2">
+                    <i class="fa-solid fa-heart text-blue-400 text-sm animate-bounce"></i>
+                    TAP SCREEN TO SUPPORT NS
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- SETTINGS & CONTROL MODAL -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel w-full max-w-sm rounded-2xl p-6 text-white border border-white/20 shadow-2xl relative">
+            <!-- Modal Close Button -->
+            <button onclick="toggleSettingsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-amber-400">
+                <i class="fa-solid fa-sliders"></i> Streamer Controls
+            </h3>
+
+            <!-- Custom Vote Setter -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-emerald-400 mb-1">SET IMRAN KHAN VOTES</label>
+                    <input type="number" id="ikVoteInput" class="w-full bg-slate-900 border border-emerald-500/50 rounded-lg p-2.5 text-white font-mono text-sm focus:outline-none focus:border-emerald-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-blue-400 mb-1">SET NAWAZ SHARIF VOTES</label>
+                    <input type="number" id="nsVoteInput" class="w-full bg-slate-900 border border-blue-500/50 rounded-lg p-2.5 text-white font-mono text-sm focus:outline-none focus:border-blue-400">
+                </div>
+
+                <!-- Apply Custom Scores -->
+                <button onclick="applyCustomVotes()" class="w-full bg-gradient-to-r from-emerald-600 to-blue-600 text-white font-bold py-2.5 rounded-lg text-sm hover:opacity-90 transition">
+                    Apply Custom Scores
+                </button>
+
+                <hr class="border-white/10 my-2">
+
+                <!-- Reset All Scores -->
+                <button onclick="resetVotes()" class="w-full bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-300 font-bold py-2 rounded-lg text-xs transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> Reset All Vote Counters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // State variables
+        let votes = {
+            IK: 1250,
+            NS: 980
+        };
+
+        let autoSimInterval = null;
+        let isAutoSimActive = false;
+
+        // On document load
+        window.addEventListener('DOMContentLoaded', () => {
+            updateUI();
+        });
+
+        // Register Vote Function
+        function registerVote(candidate, event) {
+            votes[candidate]++;
+            updateUI();
+            
+            // Trigger visual floating heart at tap location
+            if (event) {
+                const rect = event.currentTarget.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                createFloatingIcon(candidate, x, y);
+            } else {
+                // Random position for auto sim
+                const x = Math.random() * (window.innerWidth - 60);
+                const y = Math.random() * 150 + 100;
+                createFloatingIcon(candidate, x, y);
+            }
+        }
+
+        // Update display text and percentage bars
+        function updateUI() {
+            const ikVotes = votes.IK;
+            const nsVotes = votes.NS;
+            const total = ikVotes + nsVotes;
+
+            // Update Counts
+            document.getElementById('ikVoteCount').innerText = ikVotes.toLocaleString();
+            document.getElementById('nsVoteCount').innerText = nsVotes.toLocaleString();
+            document.getElementById('totalVotes').innerText = total.toLocaleString();
+
+            // Calculate Percentages
+            let ikPercent = 50;
+            let nsPercent = 50;
+
+            if (total > 0) {
+                ikPercent = Math.round((ikVotes / total) * 100);
+                nsPercent = 100 - ikPercent;
+            }
+
+            // Update Percentages Text
+            document.getElementById('ikPercent').innerText = ikPercent + '%';
+            document.getElementById('nsPercent').innerText = nsPercent + '%';
+
+            // Update Progress Bar Widths
+            document.getElementById('ikBar').style.width = ikPercent + '%';
+            document.getElementById('nsBar').style.width = nsPercent + '%';
+        }
+
+        // Floating animation maker
+        function createFloatingIcon(candidate, x, y) {
+            const container = document.getElementById(candidate === 'IK' ? 'ikHearts' : 'nsHearts');
+            if (!container) return;
+
+            const icon = document.createElement('div');
+            icon.className = 'absolute text-2xl animate-float pointer-events-none z-50';
+            
+            // Style icon based on candidate
+            if (candidate === 'IK') {
+                icon.innerHTML = '<i class="fa-solid fa-heart text-emerald-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]"></i>';
+            } else {
+                icon.innerHTML = '<i class="fa-solid fa-heart text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]"></i>';
+            }
+
+            // Position icon
+            icon.style.left = `${x}px`;
+            icon.style.top = `${y}px`;
+
+            container.appendChild(icon);
+
+            // Clean up element after animation finishes
+            setTimeout(() => {
+                icon.remove();
+            }, 1800);
+        }
+
+        // Toggle Automated Simulation
+        function toggleAutoSim() {
+            isAutoSimActive = !isAutoSimActive;
+            const label = document.getElementById('autoSimLabel');
+            const btn = document.getElementById('autoSimBtn');
+
+            if (isAutoSimActive) {
+                label.innerText = 'Auto Vote: ON';
+                btn.classList.remove('bg-amber-500/20', 'border-amber-500/40', 'text-amber-300');
+                btn.classList.add('bg-emerald-500/30', 'border-emerald-500/60', 'text-emerald-300');
+
+                // Start random interval votes simulating live TikTok stream
+                autoSimInterval = setInterval(() => {
+                    // Random weighted choice to keep competition dynamic
+                    const candidate = Math.random() > 0.45 ? 'IK' : 'NS';
+                    registerVote(candidate, null);
+                }, 300);
+            } else {
+                label.innerText = 'Auto Vote: OFF';
+                btn.classList.remove('bg-emerald-500/30', 'border-emerald-500/60', 'text-emerald-300');
+                btn.classList.add('bg-amber-500/20', 'border-amber-500/40', 'text-amber-300');
+
+                clearInterval(autoSimInterval);
+            }
+        }
+
+        // Toggle Modal Display
+        function toggleSettingsModal() {
+            const modal = document.getElementById('settingsModal');
+            document.getElementById('ikVoteInput').value = votes.IK;
+            document.getElementById('nsVoteInput').value = votes.NS;
+            modal.classList.toggle('hidden');
+        }
+
+        // Apply Custom Scores from Modal
+        function applyCustomVotes() {
+            const ikVal = parseInt(document.getElementById('ikVoteInput').value) || 0;
+            const nsVal = parseInt(document.getElementById('nsVoteInput').value) || 0;
+
+            votes.IK = Math.max(0, ikVal);
+            votes.NS = Math.max(0, nsVal);
+
+            updateUI();
+            toggleSettingsModal();
+        }
+
+        // Reset All Votes
+        function resetVotes() {
+            votes.IK = 0;
+            votes.NS = 0;
+            updateUI();
+            toggleSettingsModal();
+        }
+
+        // Toggle Fullscreen Mode
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
